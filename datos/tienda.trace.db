@@ -1,0 +1,38 @@
+2026-09-30 16:40:55.327760+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "INSERT [*]INT O PRODUCTO VALUES (id, nombre, precio, stock, garantia_meses, disponible, fecha_alta) VALUES(?, ?, ?, ?, ?, ?, ?);"; se esperaba "INTO"
+Syntax error in SQL statement "INSERT [*]INT O PRODUCTO VALUES (id, nombre, precio, stock, garantia_meses, disponible, fecha_alta) VALUES(?, ?, ?, ?, ?, ?, ?);"; expected "INTO"; SQL statement:
+INSERT INT O PRODUCTO VALUES (id, nombre, precio, stock, garantia_meses, disponible, fecha_alta) VALUES(?, ?, ?, ?, ?, ?, ?); [42001-224]
+2026-09-30 16:41:15.609256+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "INSERT INTO PRODUCTO VALUES (id, nombre, precio, stock, garantia_meses, disponible, fecha_alta) [*]VALUES(?, ?, ?, ?, ?, ?, ?);"
+Syntax error in SQL statement "INSERT INTO PRODUCTO VALUES (id, nombre, precio, stock, garantia_meses, disponible, fecha_alta) [*]VALUES(?, ?, ?, ?, ?, ?, ?);"; SQL statement:
+INSERT INTO PRODUCTO VALUES (id, nombre, precio, stock, garantia_meses, disponible, fecha_alta) VALUES(?, ?, ?, ?, ?, ?, ?); [42000-224]
+2026-09-30 16:57:13.430136+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Columna "garantia_mensual" no encontrada
+Column "garantia_mensual" not found [42122-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.jdbc.JdbcResultSet.getColumnIndex(JdbcResultSet.java:3492)
+	at org.h2.jdbc.JdbcResultSet.getObject(JdbcResultSet.java:4216)
+	at es.ercilla.ejemplos.EjemploH2Producto.main(EjemploH2Producto.java:74)
+2026-09-30 16:57:30.445619+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Columna "disponibilidad" no encontrada
+Column "disponibilidad" not found [42122-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.jdbc.JdbcResultSet.getColumnIndex(JdbcResultSet.java:3492)
+	at org.h2.jdbc.JdbcResultSet.getBoolean(JdbcResultSet.java:598)
+	at es.ercilla.ejemplos.EjemploH2Producto.main(EjemploH2Producto.java:75)
+2026-09-30 16:57:39.222899+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Columna "disponibilidad" no encontrada
+Column "disponibilidad" not found [42122-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.jdbc.JdbcResultSet.getColumnIndex(JdbcResultSet.java:3492)
+	at org.h2.jdbc.JdbcResultSet.getBoolean(JdbcResultSet.java:598)
+	at es.ercilla.ejemplos.EjemploH2Producto.main(EjemploH2Producto.java:75)
