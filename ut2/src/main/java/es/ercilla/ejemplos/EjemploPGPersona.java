@@ -2,7 +2,6 @@ package es.ercilla.ejemplos;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +19,7 @@ public class EjemploPGPersona {
 
             crearTablaPersona(conexion);
 
-            Persona p1 = new Persona("Pepe", new BigDecimal(25000), Date.valueOf("2000-01-01"), null, true, null);
+            //Persona p1 = new Persona("Pepe", new BigDecimal(25000), Date.valueOf("2000-01-01"), null, true, null);
 
             //insertarNuevaPersona(conexion, p1);
 
@@ -146,7 +145,6 @@ public class EjemploPGPersona {
                 );
             }
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return null;
@@ -195,8 +193,6 @@ public class EjemploPGPersona {
         }
         return p;
     }
-
-
 
 
 }
