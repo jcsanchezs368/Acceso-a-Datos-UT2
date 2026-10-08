@@ -2,15 +2,51 @@ package es.ercilla.ejercicios;
 
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Scanner;
 
-import org.postgresql.util.PSQLException;
-
 public class Ejercicio1 {
     public static void main(String[] args) { 
+        try {
+            Scanner teclado = new Scanner(System.in);
+            Connection conexion = DriverManager.getConnection("jdbc:postgresql://192.168.29.12:10363/ad", "dam86", "20999936Q");
+            boolean salir = false;
+            do {
+                System.out.println("RRHH");
+                System.out.println("1. Registrar empleado");
+                System.out.println("2. Eliminar empleado");
+                System.out.println("3. Modificar empleado");
+                System.out.println("0. Salir");
+                System.out.print("Elije una opción: ");
+                int opcion = teclado.nextInt();
+                teclado.nextLine();
+                switch (opcion) {
+                case 1:
+                        registrarEmpleado(conexion, teclado);
+                        break;
+                case 2:
+                        eliminarEmpleado(conexion, teclado);
+                        break;
+                case 3:
+                        modificarEmpleado(conexion, teclado);
+                        break;
+                case 0:
+                        conexion.close();
+                        teclado.close();
+                        salir = true;
+                        break;
+                default:
+                    System.err.println("OPCIÓN INCORRECTA");
+                        break;
+                }
+            } while (!salir);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
         
         /** 
@@ -25,12 +61,14 @@ public class Ejercicio1 {
             String sql = "INSERT INTO empleado VALUES(?,?,?,?,?,?,?,?)";
             try {
                 PreparedStatement sentenciaParametrizada = conexion.prepareStatement(sql);
-                String dni = teclado.nextLine();
-            
-                sentenciaParametrizada.setString(1, dni);
+                System.out.println("REGISTRAR NUEVO EMPLEADO");
+                System.out.print("DNI: ");
+                sentenciaParametrizada.setString(1, teclado.nextLine());
+                System.out.print("Introduce el nombre del empleado: ");
                 sentenciaParametrizada.setString(2, teclado.nextLine());
+                System.out.print("Introduce el primer apellido del empleado: ");
                 sentenciaParametrizada.setString(3, teclado.nextLine());
-
+                System.out.print("(OPCIONAL) Introduce el segundo apellido del empleado: ");
                 String apellido2 = teclado.nextLine();
 
                 if(apellido2.trim().isEmpty()){
@@ -38,11 +76,36 @@ public class Ejercicio1 {
                 }else{
                     sentenciaParametrizada.setString(4, apellido2);
                 }
-
+                System.out.print("Introduce el email del empleado: ");
                 sentenciaParametrizada.setString(5, teclado.nextLine());
+                System.out.print("Introduce el teléfono del empleado: ");
                 sentenciaParametrizada.setString(6, teclado.nextLine());
+                System.out.print("Introduce la fecha de nacimiento del empleado (yyyy-mm-dd): ");
                 sentenciaParametrizada.setDate(7, Date.valueOf(teclado.nextLine()));
-                sentenciaParametrizada.setString(8, teclado.nextLine());
+                System.out.println("Seleccione el departamento: ");
+                System.out.println("1) Ventas");
+                System.out.println("2) Marketing");
+                System.out.println("3) RRHH");
+
+                switch (teclado.nextInt()) {
+                    case 1:
+                        teclado.nextLine();
+                        sentenciaParametrizada.setObject(8, "ventas", Types.OTHER);
+                        break;
+
+                    case 2:
+                        teclado.nextLine();
+                        sentenciaParametrizada.setObject(8, "marketing", Types.OTHER);
+                        break;
+
+                    case 3:
+                        teclado.nextLine();
+                        sentenciaParametrizada.setObject(8, "rrhh", Types.OTHER);
+                        break;
+                    default:
+                        System.err.println("OPCIÓN INCORRECTA");
+                        break;
+                }
 
                 sentenciaParametrizada.executeUpdate();
                 
@@ -65,6 +128,7 @@ public class Ejercicio1 {
 
             try {
                 PreparedStatement sentenciaParametrizada = conexion.prepareStatement(sql);
+                System.out.print("Introduce el DNI del empleado a borrar: ");
                 sentenciaParametrizada.setString(1, teclado.nextLine());
                 sentenciaParametrizada.executeUpdate();
 
@@ -82,11 +146,12 @@ public class Ejercicio1 {
          * @throws SQLException si se produce un error al acceder a la base de datos 
          */ 
         public static void modificarEmpleado(Connection conexion, Scanner teclado) {
-            String sql = "UPDATE empleados SET ?=? WHERE DNI=?;";
             try{
-                PreparedStatement sentenciaParametrizada = conexion.prepareStatement(sql);
-
-
+                PreparedStatement sentenciaParametrizada = null;
+                String sql = null;
+            System.out.println("MODIFICAR EMPLEADO");
+            System.out.print("Introduzca el DNI del empleado a editar: ");
+            String dni = teclado.nextLine();
 
             System.out.println("Elija el campo que desea editar:");
             System.out.println("1) Teléfono");
@@ -94,25 +159,34 @@ public class Ejercicio1 {
             switch (teclado.nextInt()) {
                 case 1:
                     teclado.nextLine();
-                    sentenciaParametrizada.setString(1, "telefono");
+                    sql = "UPDATE empleado SET tlf=? WHERE DNI=?;";
+                    sentenciaParametrizada = conexion.prepareStatement(sql);
                     System.out.println("Introduzca el teléfono nuevo: ");
-                    sentenciaParametrizada.setString(2, teclado.nextLine());
+                    sentenciaParametrizada.setString(1, teclado.nextLine());
                     break;
 
                 case 2:
                     teclado.nextLine();
-                    sentenciaParametrizada.setString(1, "correo");
+                    sql = "UPDATE empleado SET email=? WHERE DNI=?;";
+                    sentenciaParametrizada = conexion.prepareStatement(sql);
                     System.out.println("Introduzca el correo nuevo: ");
-                    sentenciaParametrizada.setString(2, teclado.nextLine());
+                    sentenciaParametrizada.setString(1, teclado.nextLine());
                     break;
             
                 default:
+                    System.err.println("OPCION INCORRECTA");
                     break;
             }
-
-                        }catch(SQLException e){
+            if(sentenciaParametrizada != null){
+                sentenciaParametrizada.setString(2, dni);
+                sentenciaParametrizada.executeUpdate();
+            }
+            }catch(SQLException e){
                 mostrarError(e);
             }
+
+
+        
 
         } 
         
