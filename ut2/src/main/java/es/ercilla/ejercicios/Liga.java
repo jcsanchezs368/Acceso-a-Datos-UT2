@@ -62,7 +62,15 @@ public class Liga {
         List<Equipo> equipos = new ArrayList<Equipo>();
 
         try {
-            ResultSet rs = conexion.createStatement().executeQuery("SELECT * FROM EQUIPO ORDER BY CAST(PUNTOS AS INT) ASC;");
+            String query = """
+                    SELECT E.NOMBRE, E.PUNTOS, COUNT(P.ID_EQ_LOCAL + P.ID_EQ_VISITANTE)
+                    FROM EQUIPO E INNER JOIN PARTIDO P
+                    ON E.ID_EQUIPO == P.ID_EQ_LOCAL
+                    INNER JOIN E.ID_EQUIPO == P.ID_EQ_VISITANTE
+
+
+                    """;
+            ResultSet rs = conexion.createStatement().executeQuery("SELECT * FROM EQUIPO E INNER JOIN PARTIDO P ORDER BY CAST(PUNTOS AS INT) ASC;");
 
             while(rs.next()){
                 equipos.add(new Equipo(
