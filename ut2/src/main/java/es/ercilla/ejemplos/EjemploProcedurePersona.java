@@ -44,7 +44,6 @@ public class EjemploProcedurePersona {
       crearProcedimientoAumentarIngresos(conexion);
 
       // 3. Aumentar ingresos a las personas 1 y 2
-      // TODO
       ResultadoIngresos rs1 = aumentarIngresos(conexion, 10, 500);
       ResultadoIngresos rs2 = aumentarIngresos(conexion, 11, 3000);
 

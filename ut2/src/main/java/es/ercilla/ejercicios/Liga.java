@@ -3,22 +3,16 @@ package es.ercilla.ejercicios;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
-import es.ercilla.clases.Equipo;
-
-/**
- * 
- * Ejercicio2
- */
 public class Liga {
     public static void main(String[] args) {
         Scanner teclado = new Scanner(System.in);
@@ -35,19 +29,24 @@ public class Liga {
 
                 switch (opcion) {
                     case 0:
-                        List<Equipo> equipos = mostrarEquipos(conexion);
-                        for (Equipo equipo : equipos) {
-                            System.out.println(equipo);
-                        }
+                        mostrarClasificacion(conexion);
                         break;
                     case 1:
-                        importarPartidos(conexion);
+                        System.out.print("Introduzca la ruta del fichero CSV a leer: ");
+                        Path ruta = Path.of(teclado.nextLine());
 
+                        if(Files.isRegularFile(ruta)){
+                            importarPartidos(conexion, ruta);
+                        }else{
+                            System.err.println("No se ha encontrado la ruta al fichero.");
+                        }
                         break;
                     case 2:
                         salir = true;
+                        conexion.close();
                         break;                               
                     default:
+                        System.err.println("Opción incorrecta.");
                         break;
                 }
             }while (!salir);
@@ -55,52 +54,48 @@ public class Liga {
             e.printStackTrace();
         }
         teclado.close();
-        
     }
 
-    private static List<Equipo> mostrarEquipos(Connection conexion){
-        List<Equipo> equipos = new ArrayList<Equipo>();
-
-        try {
-            String query = """
-                    SELECT E.NOMBRE, E.PUNTOS, COUNT(P.ID_EQ_LOCAL + P.ID_EQ_VISITANTE)
-                    FROM EQUIPO E INNER JOIN PARTIDO P
-                    ON E.ID_EQUIPO == P.ID_EQ_LOCAL
-                    INNER JOIN E.ID_EQUIPO == P.ID_EQ_VISITANTE
-
-
-                    """;
-            ResultSet rs = conexion.createStatement().executeQuery("SELECT * FROM EQUIPO E INNER JOIN PARTIDO P ORDER BY CAST(PUNTOS AS INT) ASC;");
-
-            while(rs.next()){
-                equipos.add(new Equipo(
-                    rs.getInt("ID_EQUIPO"),
-                    rs.getString("NOMBRE"),
-                    rs.getInt("PUNTOS"),
-                    rs.getString("LOCALIDAD")
-                ));
+    private static void mostrarClasificacion(Connection conexion){
+        String query = """
+            SELECT
+                e.nombre,
+                e.puntos,
+                COUNT(p.id) AS num_partidos
+            FROM liga.equipo e
+            LEFT JOIN liga.partido p
+                ON e.id = p.id_eq_local
+                OR e.id = p.id_eq_visitante
+            GROUP BY e.nombre, e.puntos
+            ORDER BY e.puntos desc;
+        """;
+        try (ResultSet rs = conexion.createStatement().executeQuery(query)) {
+            int ranking = 1;
+            while (rs.next()) {
+                System.out.println("POSICIÓN EN LA CLASIFICACIÓN: " + ranking 
+                    + " \n\tNOMBRE EQUIPO: " + rs.getString("nombre") 
+                    + " \n\tPUNTUACIÓN: " + rs.getInt("puntos") 
+                    + " \n\tPARTIDOS JUGADOS: " + rs.getInt("num_partidos")
+                 );
+                 ranking++;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return equipos;
     }
 
-    private static void importarPartidos(Connection conexion){
-        try(BufferedReader br = new BufferedReader(new FileReader("jornada-1.csv"))){
+    private static void importarPartidos(Connection conexion, Path ruta){
+        try(BufferedReader br = new BufferedReader(new FileReader(ruta.toFile()))){
             br.readLine();
             String linea = br.readLine();
-            int maxId = getMaxId(conexion);
             while (linea != null) {
                 String datos[] = linea.split(";");
-                if(Integer.parseInt(datos[0]) > maxId){
+                if(!existePartido(conexion, Integer.parseInt(datos[0]))){
                     int id_local = getIdEquipoNombre(conexion, datos[1]);
                     int id_visitante = getIdEquipoNombre(conexion, datos[2]);
 
                     if(id_local != 0 && id_visitante != 0){
-                        try {
-                            PreparedStatement sentenciaP = conexion.prepareStatement("INSERT INTO PARTIDO VALUES(?,?,?,?,?,?);");
+                        try (PreparedStatement sentenciaP = conexion.prepareStatement("INSERT INTO LIGA.PARTIDO VALUES(?,?,?,?,?,?);")) {
                             sentenciaP.setInt(1, Integer.parseInt(datos[0]));
                             sentenciaP.setInt(2, id_local);
                             sentenciaP.setInt(3, id_visitante);
@@ -109,6 +104,7 @@ public class Liga {
                             sentenciaP.setString(6, datos[5]);
                             sentenciaP.executeUpdate();
 
+                            System.out.println("Partido con ID: " + Integer.parseInt(datos[0]) + " insertado.");
                             String resultado[] = datos[5].split("-");
                             int golLocal = Integer.parseInt(resultado[0]);
                             int golVisitante = Integer.parseInt(resultado[1]);
@@ -120,24 +116,22 @@ public class Liga {
                             }else{
                                 actualizarPuntuacion(conexion, id_visitante, 3);
                             }
-
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
                     }
-                    
+                }else{
+                    System.out.println("Partido con ID: " + Integer.parseInt(datos[0]) + " ya existe. Omitiendo...");
                 }
                 linea = br.readLine();
             }
         }catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private static void actualizarPuntuacion(Connection conexion, int idEquipo, int puntos){
-        try {
-            PreparedStatement sentenciaP = conexion.prepareStatement("UPDATE EQUIPO SET PUNTOS = PUNTOS + ? WHERE ID_EQUIPO = ?");
+        try (PreparedStatement sentenciaP = conexion.prepareStatement("UPDATE LIGA.EQUIPO SET PUNTOS = PUNTOS + ? WHERE ID = ?");){
             sentenciaP.setInt(1, puntos);
             sentenciaP.setInt(2, idEquipo);
             sentenciaP.executeUpdate();
@@ -148,12 +142,13 @@ public class Liga {
     }
 
     private static int getIdEquipoNombre(Connection conexion, String nombre){
-        try {
-            PreparedStatement sentenciaP = conexion.prepareStatement("SELECT ID_EQUIPO FROM EQUIPO WHERE NOMBRE = ?");
+        try (PreparedStatement sentenciaP = conexion.prepareStatement("SELECT ID FROM LIGA.EQUIPO WHERE NOMBRE = ?")){
             sentenciaP.setString(1, nombre);
-            ResultSet rs = sentenciaP.executeQuery();
-            if(rs.next()){
-                return rs.getInt(1);
+
+            try(ResultSet rs = sentenciaP.executeQuery()){
+                if(rs.next()){
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -161,18 +156,18 @@ public class Liga {
         return 0;
     }
 
-    private static int getMaxId(Connection conexion){
-        try {
-            ResultSet rs = conexion.createStatement().executeQuery("SELECT MAX(ID_PARTIDO) FROM PARTIDO;");
-            if(rs.next()){
-                return rs.getInt(1);
+    private static boolean existePartido(Connection conexion, int idPartido){
+        try (PreparedStatement sentenciaP = conexion.prepareStatement(("SELECT ID FROM LIGA.PARTIDO WHERE ID = ?"))){
+            sentenciaP.setInt(1, idPartido);
+            try (ResultSet rs = sentenciaP.executeQuery()){
+                if(rs.next()){
+                    return true;
+                }
             }
-            
-        } catch (SQLException e) {
 
+        }catch(SQLException e){
             e.printStackTrace();
         }
-
-        return 0;
+        return false;
     }
 }
